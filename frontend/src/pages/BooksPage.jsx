@@ -10,6 +10,13 @@ function BooksPage() {
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newBook, setNewBook] = useState({
+    name: '',
+    start_serial: '',
+    end_serial: ''
+  });
 
   useEffect(() => {
     loadBooks();
@@ -26,6 +33,48 @@ function BooksPage() {
       toast.error('Failed to load books');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateBook = async (e) => {
+    e.preventDefault();
+    if (!newBook.name || !newBook.start_serial) {
+      toast.error('Please fill in book name and start serial');
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const res = await bookAPI.create({
+        name: newBook.name,
+        start_serial: parseInt(newBook.start_serial),
+        end_serial: newBook.end_serial ? parseInt(newBook.end_serial) : null
+      });
+
+      if (res.data.success) {
+        toast.success('Book created successfully!');
+        setNewBook({ name: '', start_serial: '', end_serial: '' });
+        setShowCreateForm(false);
+        loadBooks();
+      }
+    } catch (error) {
+      console.error('Error creating book:', error);
+      toast.error(error.response?.data?.error || 'Failed to create book');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleSetCurrent = async (bookId) => {
+    try {
+      const res = await bookAPI.setCurrent(bookId);
+      if (res.data.success) {
+        toast.success('Book set as current!');
+        loadBooks();
+      }
+    } catch (error) {
+      console.error('Error setting current book:', error);
+      toast.error('Failed to set current book');
     }
   };
 
@@ -82,27 +131,193 @@ function BooksPage() {
           borderRadius: '16px',
           padding: '24px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-          marginBottom: '20px'
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
         }}>
-          <h2 style={{
-            fontSize: '20px',
-            fontWeight: '600',
-            color: '#1f2937',
-            margin: '0 0 6px 0',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}>
-            📚 Books
-          </h2>
-          <p style={{
-            fontSize: '14px',
-            color: '#9ca3af',
-            margin: 0
-          }}>
-            किताबें प्रबंधित करें
-          </p>
+          <div>
+            <h2 style={{
+              fontSize: '20px',
+              fontWeight: '600',
+              color: '#1f2937',
+              margin: '0 0 6px 0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px'
+            }}>
+              📚 Books
+            </h2>
+            <p style={{
+              fontSize: '14px',
+              color: '#9ca3af',
+              margin: 0
+            }}>
+              किताबें प्रबंधित करें
+            </p>
+          </div>
+          <button
+            onClick={() => setShowCreateForm(!showCreateForm)}
+            style={{
+              padding: '12px 20px',
+              background: '#1e3a5f',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            + New Book / नई किताब
+          </button>
         </div>
+
+        {/* Create Book Form */}
+        {showCreateForm && (
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            marginBottom: '20px',
+            borderLeft: '4px solid #1e3a5f'
+          }}>
+            <h3 style={{
+              fontSize: '16px',
+              fontWeight: '600',
+              color: '#1f2937',
+              margin: '0 0 20px 0'
+            }}>
+              Create New Book / नई किताब बनाएं
+            </h3>
+            <form onSubmit={handleCreateBook}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  color: '#374151',
+                  marginBottom: '6px'
+                }}>
+                  Book Name / किताब का नाम *
+                </label>
+                <input
+                  type="text"
+                  value={newBook.name}
+                  onChange={(e) => setNewBook({ ...newBook, name: e.target.value })}
+                  placeholder="e.g., Book 2024"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    fontSize: '15px',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '10px',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '6px'
+                  }}>
+                    Start Serial / शुरू नंबर *
+                  </label>
+                  <input
+                    type="number"
+                    value={newBook.start_serial}
+                    onChange={(e) => setNewBook({ ...newBook, start_serial: e.target.value })}
+                    placeholder="e.g., 1"
+                    required
+                    min="1"
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      fontSize: '15px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '10px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    color: '#374151',
+                    marginBottom: '6px'
+                  }}>
+                    End Serial / अंत नंबर (Optional)
+                  </label>
+                  <input
+                    type="number"
+                    value={newBook.end_serial}
+                    onChange={(e) => setNewBook({ ...newBook, end_serial: e.target.value })}
+                    placeholder="e.g., 500"
+                    min="1"
+                    style={{
+                      width: '100%',
+                      padding: '12px 14px',
+                      fontSize: '15px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '10px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  style={{
+                    padding: '12px 24px',
+                    background: creating ? '#9ca3af' : '#1e3a5f',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: creating ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {creating ? 'Creating...' : '✓ Create Book'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateForm(false)}
+                  style={{
+                    padding: '12px 24px',
+                    background: '#f3f4f6',
+                    color: '#6b7280',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* Books List */}
         {books.map((book) => (
@@ -162,6 +377,23 @@ function BooksPage() {
                   )}
                 </div>
               </div>
+              {!book.is_current && (
+                <button
+                  onClick={() => handleSetCurrent(book.id)}
+                  style={{
+                    padding: '8px 16px',
+                    background: '#f0fdf4',
+                    color: '#16a34a',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Set as Current
+                </button>
+              )}
             </div>
 
             {/* Stats Grid */}
