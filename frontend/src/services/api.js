@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 // Use environment variable for production, fallback to /api for local development
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// VITE_API_URL should be the base URL (e.g., https://eagle-tailors-api.onrender.com)
+const baseUrl = import.meta.env.VITE_API_URL || '';
+const API_BASE_URL = baseUrl ? `${baseUrl}/api` : '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
