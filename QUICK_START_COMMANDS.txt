@@ -1,0 +1,143 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# EAGLE TAILORS - ONE COMMAND BUILD
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# Copy and paste the ENTIRE block below into your terminal.
+# Then go for your walk. Everything will be built when you return.
+#
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 1: Copy this entire block and paste in terminal
+# ──────────────────────────────────────────────────────────────────────────
+
+mkdir -p ~/eagle-tailors && cd ~/eagle-tailors && curl -sL https://raw.githubusercontent.com/anthropics/claude-cli/main/install.sh | bash 2>/dev/null; cat > BUILD_INSTRUCTIONS.md << 'INSTRUCTIONS_EOF'
+# [The full instructions will be here - see eagle_tailors_cli_instructions.md]
+INSTRUCTIONS_EOF
+
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 2: OR use this simpler approach (RECOMMENDED)
+# ──────────────────────────────────────────────────────────────────────────
+
+# 1. Create project folder
+mkdir -p ~/eagle-tailors
+cd ~/eagle-tailors
+
+# 2. Copy the BUILD_INSTRUCTIONS.md file to this folder
+#    (Download from the provided file or copy content manually)
+
+# 3. Run Claude CLI with auto-permissions
+claude --dangerously-skip-permissions
+
+# 4. When Claude starts, paste this prompt:
+
+"""
+Read BUILD_INSTRUCTIONS.md completely.
+
+You are building Eagle Tailors - a complete Tailor Shop Management System.
+
+YOUR TASK: Build the ENTIRE Phase 1 application NOW.
+
+RULES:
+1. Do NOT ask any questions
+2. Do NOT ask for confirmation  
+3. Create ALL files with COMPLETE code (no placeholders, no TODOs)
+4. Install all dependencies automatically
+5. Setup PostgreSQL database automatically
+6. Run all commands needed
+7. Test that everything works
+
+STEPS TO EXECUTE:
+1. Create complete folder structure
+2. Create and run database/schema.sql in PostgreSQL
+3. Build complete backend (Node.js + Express + TypeScript)
+4. Build complete frontend (React + Vite + TypeScript + Tailwind)
+5. Create all API endpoints
+6. Create all React pages and components
+7. Setup image upload and processing
+8. Setup backup system
+9. Create start scripts
+10. Verify everything runs
+
+Tech Stack:
+- Backend: Node.js, Express, TypeScript, pg, multer, sharp
+- Frontend: React, Vite, TypeScript, Tailwind CSS, React Router
+- Database: PostgreSQL
+
+START BUILDING NOW. Create every single file completely.
+"""
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# STEP 3: Alternative - Run with file input
+# ──────────────────────────────────────────────────────────────────────────
+
+cd ~/eagle-tailors
+claude --dangerously-skip-permissions --file BUILD_INSTRUCTIONS.md "Build everything in this file. Create all files completely. Do not ask questions. Just build."
+
+
+# ══════════════════════════════════════════════════════════════════════════
+# WHAT HAPPENS NEXT
+# ══════════════════════════════════════════════════════════════════════════
+#
+# Claude will:
+# 1. Read the instructions
+# 2. Create all folders and files
+# 3. Install npm packages
+# 4. Setup PostgreSQL database
+# 5. Create all backend APIs
+# 6. Create all frontend pages
+# 7. Test everything
+#
+# This takes approximately 15-30 minutes depending on system.
+#
+# When you return from your walk:
+# - Check ~/eagle-tailors folder
+# - Run: cd ~/eagle-tailors && ./scripts/start-all.sh
+# - Open: http://localhost:5173
+# - Login PIN: 9876 (owner) or 1234 (helper)
+#
+# ══════════════════════════════════════════════════════════════════════════
+
+
+# ──────────────────────────────────────────────────────────────────────────
+# TROUBLESHOOTING
+# ──────────────────────────────────────────────────────────────────────────
+
+# If PostgreSQL is not installed:
+# Ubuntu/Debian: sudo apt install postgresql postgresql-contrib
+# Mac: brew install postgresql && brew services start postgresql
+# Windows: Download from https://www.postgresql.org/download/windows/
+
+# If Claude CLI is not installed:
+# npm install -g @anthropic-ai/claude-code
+
+# If permission errors:
+# chmod +x scripts/*.sh
+
+# If database connection fails:
+# sudo -u postgres createuser --superuser $USER
+# createdb eagle_tailors
+
+# ──────────────────────────────────────────────────────────────────────────
+# VERIFY BUILD SUCCESS
+# ──────────────────────────────────────────────────────────────────────────
+
+# After Claude finishes, run these checks:
+
+# Check folder structure:
+ls -la ~/eagle-tailors/
+
+# Check backend:
+ls -la ~/eagle-tailors/backend/src/
+
+# Check frontend:
+ls -la ~/eagle-tailors/frontend/src/
+
+# Check database:
+psql -d eagle_tailors -c "SELECT COUNT(*) FROM garment_types;"
+
+# Start the app:
+cd ~/eagle-tailors
+./scripts/start-all.sh

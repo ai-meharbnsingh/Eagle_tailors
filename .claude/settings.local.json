@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(createdb:*)",
+      "Bash(psql:*)",
+      "Bash(node --version:*)",
+      "Bash(npm:*)",
+      "Bash(where:*)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\16\\bin\\psql.exe\" --version)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\15\\bin\\psql.exe\" --version)",
+      "Bash(\"C:\\Program Files\\PostgreSQL\\14\\bin\\psql.exe\" --version)",
+      "Bash(node scripts/create-database.js:*)",
+      "Bash(node scripts/migrate.js:*)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(awk:*)",
+      "Bash(cmd.exe /c \"D:\\Amit_Jiju\\Eagle_taliors\\RESTART_SERVERS.bat\")",
+      "Bash(cmd.exe /c start http://localhost:3000)",
+      "Bash(mkdir:*)",
+      "Bash(npx tailwindcss:*)",
+      "Bash(sc query:*)",
+      "Bash(powershell -Command \"Get-Service | Where-Object { $_.Name -like ''*postgres*'' } | Format-Table Name, Status\")",
+      "Bash(PGPASSWORD=123456 psql:*)",
+      "Bash(powershell -Command \"Get-Service postgresql-x64-18 | Select-Object Status\")",
+      "Bash(export PGPASSWORD=123456:*)",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U postgres -tc \"SELECT 1 FROM pg_database WHERE datname=''eagle_tailors''\")",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U postgres -d eagle_tailors -c \"\\\\dt\")",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" -h localhost -U postgres -d eagle_tailors -c \"SELECT * FROM books;\")",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\":*)",
+      "Bash(curl:*)",
+      "Bash(dir:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

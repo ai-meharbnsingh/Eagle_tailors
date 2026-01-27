@@ -1,0 +1,65 @@
+# Render.com Blueprint - Eagle Tailors Deployment
+# This file auto-configures all services on Render
+
+databases:
+  - name: eagle-tailors-db
+    databaseName: eagle_tailors
+    user: eagle_admin
+    plan: free  # or starter for production
+
+services:
+  # Backend API Service
+  - type: web
+    name: eagle-tailors-api
+    runtime: node
+    plan: free  # or starter for production
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_HOST
+        fromDatabase:
+          name: eagle-tailors-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: eagle-tailors-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: eagle-tailors-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: eagle-tailors-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: eagle-tailors-db
+          property: password
+      - key: FRONTEND_URL
+        fromService:
+          name: eagle-tailors-frontend
+          type: web
+          property: host
+    healthCheckPath: /health
+
+  # Frontend Static Site
+  - type: web
+    name: eagle-tailors-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: eagle-tailors-api
+          type: web
+          property: hostURL
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
