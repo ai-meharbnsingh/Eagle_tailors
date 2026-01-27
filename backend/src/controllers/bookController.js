@@ -4,9 +4,13 @@ export const bookController = {
   // Create new book
   async create(req, res) {
     try {
-      const { name, startSerial, endSerial, isCurrent } = req.body;
+      // Accept both camelCase and snake_case
+      const { name, startSerial, endSerial, start_serial, end_serial, isCurrent, is_current } = req.body;
+      const actualStartSerial = startSerial || start_serial;
+      const actualEndSerial = endSerial || end_serial;
+      const actualIsCurrent = isCurrent || is_current;
 
-      if (!name || !startSerial) {
+      if (!name || !actualStartSerial) {
         return res.status(400).json({
           success: false,
           error: 'Name and start serial are required'
@@ -15,9 +19,9 @@ export const bookController = {
 
       const book = await BookModel.create({
         name,
-        startSerial: parseInt(startSerial),
-        endSerial: endSerial ? parseInt(endSerial) : null,
-        isCurrent: isCurrent || false
+        startSerial: parseInt(actualStartSerial),
+        endSerial: actualEndSerial ? parseInt(actualEndSerial) : null,
+        isCurrent: actualIsCurrent || false
       });
 
       res.status(201).json({
