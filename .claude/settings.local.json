@@ -44,7 +44,20 @@
       "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/books'' -Method GET\")",
       "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/books'' -Method POST -ContentType ''application/json'' -Body ''{\"\"name\"\":\"\"Test Book\"\",\"\"start_serial\"\":1}''\")",
       "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/assets/index*.js'' -UseBasicParsing\\).Content.Substring\\(0, 500\\)\")",
-      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/customers/search?q=test&type=name''\")"
+      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/customers/search?q=test&type=name''\")",
+      "Bash(node --check:*)",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-api.onrender.com/health'' -UseBasicParsing -TimeoutSec 180\\).Content\")",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-api.onrender.com/api/bills?limit=1'' -UseBasicParsing\\).Content\")",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/'' -UseBasicParsing -TimeoutSec 180\\).StatusCode\")",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/assets/index-*.js'' -UseBasicParsing\\).Content.Substring\\(0, 1000\\)\")",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/'' -UseBasicParsing\\).Content\")",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/assets/index-UtrQjl4p.js'' -UseBasicParsing\\).Content\")",
+      "Bash(Select-String -Pattern \"eagle-tailors-api|VITE_API|baseUrl|API_BASE\")",
+      "Bash(Select-Object -First 5)",
+      "Bash(powershell -Command \"$content = \\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/assets/index-UtrQjl4p.js'' -UseBasicParsing\\).Content; if \\($content -match ''eagle-tailors-api''\\) { ''Found API URL'' } else { ''API URL NOT FOUND in bundle'' }\")",
+      "Bash(powershell -Command \"$js = \\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/assets/index-C1XhPMMF.js'' -UseBasicParsing\\).Content; $js.Contains\\(''eagle-tailors-api''\\)\")",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-api.onrender.com/api/books/current'' -UseBasicParsing -TimeoutSec 120\\).Content\")",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-api.onrender.com/api/bills/stats'' -UseBasicParsing -TimeoutSec 60\\).Content\")"
     ],
     "deny": [],
     "ask": []

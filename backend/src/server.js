@@ -21,10 +21,10 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 // Configure CORS for production
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || '*',
+  origin: '*',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma'],
+  credentials: false
 };
 app.use(cors(corsOptions));
 app.use(express.json());
