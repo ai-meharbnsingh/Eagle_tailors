@@ -35,6 +35,7 @@ export const billAPI = {
   getByFolio: (folio, bookId) => api.get(`/bills/folio/${folio}`, { params: { bookId } }),
   getByCustomer: (customerId) => api.get(`/bills/customer/${customerId}`),
   getDueDeliveries: (date) => api.get('/bills/due-deliveries', { params: { date } }),
+  getUpcomingDeliveries: (days = 3) => api.get('/bills/upcoming-deliveries', { params: { days } }),
   getPendingPayments: () => api.get('/bills/pending-payments'),
   getStats: (bookId) => api.get('/bills/stats', { params: { bookId } }),
   update: (id, data) => api.put(`/bills/${id}`, data),

@@ -222,6 +222,25 @@ export const billController = {
     }
   },
 
+  // Get upcoming deliveries (within X days)
+  async getUpcomingDeliveries(req, res) {
+    try {
+      const { days = 3 } = req.query;
+      const bills = await BillModel.findUpcomingDeliveries(parseInt(days));
+
+      res.json({
+        success: true,
+        data: bills
+      });
+    } catch (error) {
+      console.error('Error getting upcoming deliveries:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get upcoming deliveries'
+      });
+    }
+  },
+
   // Update bill
   async update(req, res) {
     try {

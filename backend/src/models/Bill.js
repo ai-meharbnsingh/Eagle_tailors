@@ -211,6 +211,30 @@ export const BillModel = {
     return result.rows;
   },
 
+  // Get upcoming deliveries (within X days from today)
+  async findUpcomingDeliveries(days = 3) {
+    const result = await query(
+      `SELECT b.*,
+              c.name as customer_name,
+              c.customer_code,
+              json_agg(DISTINCT jsonb_build_object('phone', cp.phone))
+              FILTER (WHERE cp.id IS NOT NULL) as customer_phones,
+              bk.name as book_name,
+              (b.delivery_date - CURRENT_DATE) as days_until_delivery
+       FROM bills b
+       INNER JOIN customers c ON b.customer_id = c.id
+       LEFT JOIN customer_phones cp ON c.id = cp.customer_id
+       INNER JOIN books bk ON b.book_id = bk.id
+       WHERE b.delivery_date BETWEEN CURRENT_DATE AND (CURRENT_DATE + $1 * INTERVAL '1 day')
+       AND b.status NOT IN ('delivered', 'cancelled')
+       AND b.is_deleted = false
+       GROUP BY b.id, c.id, bk.id
+       ORDER BY b.delivery_date ASC, b.created_at ASC`,
+      [days]
+    );
+    return result.rows;
+  },
+
   // Update bill
   async update(id, {
     billDate,

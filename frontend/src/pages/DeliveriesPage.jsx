@@ -10,6 +10,11 @@ function DeliveriesPage() {
   const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedBill, setSelectedBill] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
     loadDeliveries();
@@ -45,7 +50,82 @@ function DeliveriesPage() {
   const groupedDeliveries = {
     overdue: deliveries.filter(b => isPast(new Date(b.delivery_date)) && !isToday(new Date(b.delivery_date))),
     today: deliveries.filter(b => isToday(new Date(b.delivery_date))),
-    upcoming: deliveries.filter(b => !isPast(new Date(b.delivery_date)) && !isToday(new Date(b.delivery_date)))
+    upcoming: deliveries.filter(b => !isPast(new Date(b.delivery_date)) && !isToday(new Date(b.delivery_date))),
+    ready: deliveries.filter(b => b.status === 'ready'),
+    stitching: deliveries.filter(b => b.status === 'stitching'),
+    cutting: deliveries.filter(b => b.status === 'cutting')
+  };
+
+  const handleMarkDelivered = async (bill, e) => {
+    e.stopPropagation();
+    if (bill.balance_due > 0) {
+      toast.error('Please collect pending payment first');
+      setSelectedBill(bill);
+      setShowPaymentModal(true);
+      return;
+    }
+    setUpdating(true);
+    try {
+      const res = await billAPI.update(bill.id, { status: 'delivered' });
+      if (res.data.success) {
+        toast.success('Marked as delivered! ✅');
+        loadDeliveries();
+      }
+    } catch (error) {
+      console.error('Error marking delivered:', error);
+      toast.error('Failed to update');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleOpenPayment = (bill, e) => {
+    e.stopPropagation();
+    setSelectedBill(bill);
+    setPaymentAmount(bill.balance_due?.toString() || '');
+    setShowPaymentModal(true);
+  };
+
+  const handleAddPayment = async () => {
+    if (!selectedBill) return;
+    const amount = parseFloat(paymentAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Enter valid amount');
+      return;
+    }
+    if (amount > selectedBill.balance_due) {
+      toast.error('Amount exceeds balance');
+      return;
+    }
+    setUpdating(true);
+    try {
+      const newAdvance = (selectedBill.advance_paid || 0) + amount;
+      const res = await billAPI.update(selectedBill.id, { advancePaid: newAdvance });
+      if (res.data.success) {
+        toast.success(`₹${amount} payment recorded!`);
+        setShowPaymentModal(false);
+        setSelectedBill(null);
+        setPaymentAmount('');
+        loadDeliveries();
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Failed to record payment');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const getFilteredDeliveries = () => {
+    switch (activeFilter) {
+      case 'overdue': return groupedDeliveries.overdue;
+      case 'today': return groupedDeliveries.today;
+      case 'upcoming': return groupedDeliveries.upcoming;
+      case 'ready': return groupedDeliveries.ready;
+      case 'stitching': return groupedDeliveries.stitching;
+      case 'cutting': return groupedDeliveries.cutting;
+      default: return deliveries;
+    }
   };
 
   if (loading) {
@@ -63,7 +143,14 @@ function DeliveriesPage() {
   }
 
   const DeliveryCard = ({ bill }) => {
-    const status = getDeliveryStatus(bill.delivery_date);
+    const dateStatus = getDeliveryStatus(bill.delivery_date);
+    const statusConfig = {
+      cutting: { icon: '✂️', text: 'Cutting', color: '#9333ea', bg: '#f3e8ff' },
+      stitching: { icon: '🧵', text: 'Stitching', color: '#d97706', bg: '#fef3c7' },
+      ready: { icon: '✅', text: 'Ready', color: '#059669', bg: '#d1fae5' }
+    };
+    const workStatus = statusConfig[bill.status] || statusConfig.cutting;
+
     return (
       <div
         onClick={() => navigate(`/bill/${bill.id}`)}
@@ -102,9 +189,21 @@ function DeliveriesPage() {
               }}>
                 {bill.customer_name}
               </span>
+              {bill.customer_code && (
+                <span style={{
+                  fontSize: '10px',
+                  background: '#1e3a5f',
+                  color: 'white',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontWeight: '500'
+                }}>
+                  {bill.customer_code}
+                </span>
+              )}
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <span style={{ fontSize: '13px', color: '#9ca3af' }}>
                 📅 {format(new Date(bill.delivery_date), 'dd MMM yyyy')}
               </span>
@@ -113,6 +212,16 @@ function DeliveriesPage() {
                   📞 {bill.customer_phones[0].phone}
                 </span>
               )}
+              <span style={{
+                fontSize: '11px',
+                padding: '3px 8px',
+                borderRadius: '5px',
+                fontWeight: '500',
+                background: workStatus.bg,
+                color: workStatus.color
+              }}>
+                {workStatus.icon} {workStatus.text}
+              </span>
             </div>
 
             {bill.balance_due > 0 && (
@@ -122,9 +231,58 @@ function DeliveriesPage() {
                 color: '#ef4444',
                 fontWeight: '500'
               }}>
-                Balance: ₹{bill.balance_due.toLocaleString('en-IN')}
+                Balance Due: ₹{bill.balance_due.toLocaleString('en-IN')}
               </div>
             )}
+
+            {/* Quick Actions */}
+            <div style={{
+              display: 'flex',
+              gap: '8px',
+              marginTop: '12px'
+            }}>
+              {bill.balance_due > 0 && (
+                <button
+                  onClick={(e) => handleOpenPayment(bill, e)}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    background: '#dbeafe',
+                    color: '#2563eb',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  💵 Add Payment
+                </button>
+              )}
+              {bill.status === 'ready' && (
+                <button
+                  onClick={(e) => handleMarkDelivered(bill, e)}
+                  disabled={updating}
+                  style={{
+                    padding: '6px 12px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    background: bill.balance_due > 0 ? '#f3f4f6' : '#d1fae5',
+                    color: bill.balance_due > 0 ? '#9ca3af' : '#059669',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: bill.balance_due > 0 ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  🚚 Mark Delivered
+                </button>
+              )}
+            </div>
           </div>
 
           <span style={{
@@ -132,10 +290,10 @@ function DeliveriesPage() {
             padding: '4px 10px',
             borderRadius: '6px',
             fontWeight: '500',
-            background: status.bg,
-            color: status.color
+            background: dateStatus.bg,
+            color: dateStatus.color
           }}>
-            {status.text}
+            {dateStatus.text}
           </span>
         </div>
       </div>
@@ -250,6 +408,75 @@ function DeliveriesPage() {
           </div>
         </div>
 
+        {/* Filter Tabs */}
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '20px',
+          overflowX: 'auto',
+          paddingBottom: '4px'
+        }}>
+          {[
+            { key: 'all', label: 'All', count: deliveries.length },
+            { key: 'overdue', label: '⚠️ Overdue', count: groupedDeliveries.overdue.length, color: '#ef4444' },
+            { key: 'today', label: '📅 Today', count: groupedDeliveries.today.length, color: '#f59e0b' },
+            { key: 'ready', label: '✅ Ready', count: groupedDeliveries.ready.length, color: '#059669' },
+            { key: 'stitching', label: '🧵 Stitching', count: groupedDeliveries.stitching.length, color: '#d97706' },
+            { key: 'cutting', label: '✂️ Cutting', count: groupedDeliveries.cutting.length, color: '#9333ea' }
+          ].map((filter) => (
+            <button
+              key={filter.key}
+              onClick={() => setActiveFilter(filter.key)}
+              style={{
+                padding: '8px 14px',
+                fontSize: '13px',
+                fontWeight: '500',
+                background: activeFilter === filter.key ? (filter.color || '#1e3a5f') : 'white',
+                color: activeFilter === filter.key ? 'white' : '#6b7280',
+                border: activeFilter === filter.key ? 'none' : '1px solid #e5e7eb',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              {filter.label}
+              <span style={{
+                background: activeFilter === filter.key ? 'rgba(255,255,255,0.2)' : '#f3f4f6',
+                padding: '2px 6px',
+                borderRadius: '10px',
+                fontSize: '11px'
+              }}>
+                {filter.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Filtered Results */}
+        {activeFilter !== 'all' ? (
+          <div style={{ marginBottom: '24px' }}>
+            {getFilteredDeliveries().length > 0 ? (
+              getFilteredDeliveries().map((bill) => (
+                <DeliveryCard key={bill.id} bill={bill} />
+              ))
+            ) : (
+              <div style={{
+                textAlign: 'center',
+                padding: '40px 20px',
+                background: 'white',
+                borderRadius: '14px'
+              }}>
+                <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
+                  No deliveries in this category
+                </p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
         {/* Overdue Section */}
         {groupedDeliveries.overdue.length > 0 && (
           <div style={{ marginBottom: '24px' }}>
@@ -335,7 +562,131 @@ function DeliveriesPage() {
             </p>
           </div>
         )}
+          </>
+        )}
       </main>
+
+      {/* Payment Modal */}
+      {showPaymentModal && selectedBill && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            maxWidth: '400px',
+            width: '100%'
+          }}>
+            <h3 style={{
+              fontSize: '18px',
+              fontWeight: '600',
+              color: '#1f2937',
+              margin: '0 0 8px 0'
+            }}>
+              💵 Add Payment
+            </h3>
+            <p style={{
+              fontSize: '14px',
+              color: '#6b7280',
+              margin: '0 0 20px 0'
+            }}>
+              Folio #{selectedBill.folio_number} • {selectedBill.customer_name}
+            </p>
+
+            <div style={{
+              background: '#f9fafb',
+              borderRadius: '10px',
+              padding: '12px 16px',
+              marginBottom: '16px',
+              display: 'flex',
+              justifyContent: 'space-between'
+            }}>
+              <span style={{ fontSize: '14px', color: '#6b7280' }}>Balance Due</span>
+              <span style={{ fontSize: '16px', fontWeight: '600', color: '#ef4444' }}>
+                ₹{selectedBill.balance_due?.toLocaleString()}
+              </span>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{
+                display: 'block',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: '#374151',
+                marginBottom: '6px'
+              }}>
+                Payment Amount
+              </label>
+              <input
+                type="number"
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+                placeholder="Enter amount"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  fontSize: '16px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '10px',
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            <div style={{
+              display: 'flex',
+              gap: '12px'
+            }}>
+              <button
+                onClick={() => {
+                  setShowPaymentModal(false);
+                  setSelectedBill(null);
+                  setPaymentAmount('');
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  background: '#f3f4f6',
+                  color: '#6b7280',
+                  border: 'none',
+                  borderRadius: '10px',
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddPayment}
+                disabled={updating}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  background: '#059669',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  opacity: updating ? 0.7 : 1
+                }}
+              >
+                {updating ? 'Recording...' : 'Record Payment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav />
     </div>

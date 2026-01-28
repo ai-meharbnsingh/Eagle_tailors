@@ -17,6 +17,7 @@ function HomePage() {
     pendingPayments: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [upcomingDeliveries, setUpcomingDeliveries] = useState([]);
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -181,9 +182,10 @@ function HomePage() {
 
   const loadDashboardData = async () => {
     try {
-      const [bookRes, statsRes] = await Promise.all([
+      const [bookRes, statsRes, upcomingRes] = await Promise.all([
         bookAPI.getCurrent(),
         billAPI.getStats(),
+        billAPI.getUpcomingDeliveries(3),
       ]);
 
       if (bookRes.data.success) {
@@ -198,6 +200,10 @@ function HomePage() {
           overdueDeliveries: apiStats.overdue_count || 0,
           pendingPayments: apiStats.total_pending || 0,
         });
+      }
+
+      if (upcomingRes.data.success) {
+        setUpcomingDeliveries(upcomingRes.data.data || []);
       }
     } catch (error) {
       console.error('Failed to load dashboard:', error);
@@ -576,6 +582,207 @@ function HomePage() {
             />
           </div>
         </section>
+
+        {/* Upcoming Deliveries Section */}
+        {upcomingDeliveries.length > 0 && (
+          <section style={{ marginBottom: '36px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
+              marginBottom: '18px'
+            }}>
+              <div>
+                <h2 style={{
+                  fontSize: '18px',
+                  fontWeight: '600',
+                  color: '#1f2937',
+                  margin: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  🔔 Upcoming Deliveries
+                  <span style={{
+                    background: '#ef4444',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    padding: '2px 8px',
+                    borderRadius: '10px'
+                  }}>
+                    {upcomingDeliveries.length}
+                  </span>
+                </h2>
+                <p style={{
+                  fontSize: '12px',
+                  color: '#9ca3af',
+                  margin: '2px 0 0 0'
+                }}>
+                  आने वाली डिलीवरी (3 दिनों में)
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/deliveries')}
+                style={{
+                  fontSize: '12px',
+                  color: '#1e3a5f',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}
+              >
+                View All →
+              </button>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              {upcomingDeliveries.slice(0, 5).map((delivery) => {
+                const daysUntil = delivery.days_until_delivery;
+                const isUrgent = daysUntil <= 1;
+                const isToday = daysUntil === 0;
+
+                return (
+                  <div
+                    key={delivery.id}
+                    onClick={() => navigate(`/bill/${delivery.id}`)}
+                    style={{
+                      background: 'white',
+                      borderRadius: '14px',
+                      padding: '16px 20px',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+                      border: isUrgent ? '2px solid #ef4444' : '1px solid #e5e7eb',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '16px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)';
+                    }}
+                  >
+                    {/* Status/Days Badge */}
+                    <div style={{
+                      width: '50px',
+                      height: '50px',
+                      background: isToday ? '#fee2e2' : isUrgent ? '#fef3c7' : '#dbeafe',
+                      borderRadius: '12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0
+                    }}>
+                      <span style={{
+                        fontSize: '18px',
+                        fontWeight: '700',
+                        color: isToday ? '#dc2626' : isUrgent ? '#d97706' : '#2563eb'
+                      }}>
+                        {isToday ? '!' : daysUntil}
+                      </span>
+                      <span style={{
+                        fontSize: '9px',
+                        color: isToday ? '#dc2626' : isUrgent ? '#d97706' : '#2563eb',
+                        fontWeight: '500',
+                        textTransform: 'uppercase'
+                      }}>
+                        {isToday ? 'Today' : daysUntil === 1 ? 'Day' : 'Days'}
+                      </span>
+                    </div>
+
+                    {/* Customer & Order Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        marginBottom: '4px'
+                      }}>
+                        <span style={{
+                          fontSize: '15px',
+                          fontWeight: '600',
+                          color: '#1f2937'
+                        }}>
+                          {delivery.customer_name}
+                        </span>
+                        {delivery.customer_code && (
+                          <span style={{
+                            fontSize: '10px',
+                            background: '#1e3a5f',
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            fontWeight: '500'
+                          }}>
+                            {delivery.customer_code}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        fontSize: '12px',
+                        color: '#6b7280'
+                      }}>
+                        <span>📋 Folio #{delivery.folio_number}</span>
+                        <span>•</span>
+                        <span>📚 {delivery.book_name}</span>
+                        <span>•</span>
+                        <span style={{
+                          color: delivery.status === 'ready' ? '#059669' : '#d97706',
+                          fontWeight: '500'
+                        }}>
+                          {delivery.status === 'cutting' && '✂️ Cutting'}
+                          {delivery.status === 'stitching' && '🧵 Stitching'}
+                          {delivery.status === 'ready' && '✅ Ready'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Amount & Action */}
+                    <div style={{
+                      textAlign: 'right',
+                      flexShrink: 0
+                    }}>
+                      <p style={{
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#1f2937',
+                        margin: 0
+                      }}>
+                        ₹{delivery.total_amount?.toLocaleString()}
+                      </p>
+                      {delivery.balance_due > 0 && (
+                        <p style={{
+                          fontSize: '11px',
+                          color: '#ef4444',
+                          margin: '2px 0 0 0',
+                          fontWeight: '500'
+                        }}>
+                          Due: ₹{delivery.balance_due?.toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+
+                    <span style={{ color: '#d1d5db', fontSize: '18px' }}>›</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Current Book Status - Slim elegant card */}
         {currentBook && (
