@@ -248,6 +248,12 @@ export const BillModel = {
     rawExtraction,
     updatedBy
   }) {
+    console.log('BillModel.update params:', {
+      id,
+      advancePaid,
+      totalAmount,
+      status
+    });
     const result = await query(
       `UPDATE bills
        SET bill_date = COALESCE($1, bill_date),

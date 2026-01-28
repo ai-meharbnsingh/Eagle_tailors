@@ -259,6 +259,9 @@ export const billController = {
 
       const updatedBy = req.user?.id;
 
+      console.log('Update bill request:', { id, advancePaid, totalAmount, status });
+      console.log('Parsed advancePaid:', advancePaid !== undefined ? parseFloat(advancePaid) : undefined);
+
       const bill = await BillModel.update(id, {
         billDate,
         deliveryDate,
@@ -272,6 +275,8 @@ export const billController = {
         updatedBy
       });
 
+      console.log('Bill update result:', bill);
+
       if (!bill) {
         return res.status(404).json({
           success: false,
@@ -281,6 +286,10 @@ export const billController = {
 
       // Get complete bill data
       const completeBill = await BillModel.findById(id);
+      console.log('Complete bill after update:', {
+        advance_paid: completeBill?.advance_paid,
+        balance_due: completeBill?.balance_due
+      });
 
       res.json({
         success: true,
