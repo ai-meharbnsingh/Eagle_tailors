@@ -48,7 +48,9 @@ function BillDetailPage() {
 
     setUpdating(true);
     try {
-      const newAdvance = (bill.advance_paid || 0) + amount;
+      const currentAdvance = parseFloat(bill.advance_paid) || 0;
+      const newAdvance = currentAdvance + amount;
+      console.log('Payment update:', { currentAdvance, amount, newAdvance });
       const res = await billAPI.update(id, { advancePaid: newAdvance });
       if (res.data.success) {
         toast.success(`₹${amount} payment recorded!`);

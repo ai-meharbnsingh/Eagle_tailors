@@ -99,7 +99,8 @@ function DeliveriesPage() {
     }
     setUpdating(true);
     try {
-      const newAdvance = (selectedBill.advance_paid || 0) + amount;
+      const currentAdvance = parseFloat(selectedBill.advance_paid) || 0;
+      const newAdvance = currentAdvance + amount;
       const res = await billAPI.update(selectedBill.id, { advancePaid: newAdvance });
       if (res.data.success) {
         toast.success(`₹${amount} payment recorded!`);
