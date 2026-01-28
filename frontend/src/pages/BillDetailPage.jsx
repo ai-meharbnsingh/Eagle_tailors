@@ -23,7 +23,13 @@ function BillDetailPage() {
 
   const loadBill = async () => {
     try {
+      // Add timestamp to bypass any caching
       const res = await billAPI.getById(id);
+      console.log('Loaded bill data:', {
+        advance_paid: res.data.data?.advance_paid,
+        balance_due: res.data.data?.balance_due,
+        total_amount: res.data.data?.total_amount
+      });
       if (res.data.success) {
         setBill(res.data.data);
       }
@@ -50,16 +56,30 @@ function BillDetailPage() {
     try {
       const currentAdvance = parseFloat(bill.advance_paid) || 0;
       const newAdvance = currentAdvance + amount;
-      console.log('Payment update:', { currentAdvance, amount, newAdvance });
+      console.log('Payment update request:', {
+        billId: id,
+        currentAdvance,
+        amount,
+        newAdvance,
+        sending: { advancePaid: newAdvance }
+      });
       const res = await billAPI.update(id, { advancePaid: newAdvance });
+      console.log('Payment update response:', res.data);
       if (res.data.success) {
+        console.log('Updated bill data:', {
+          advance_paid: res.data.data?.advance_paid,
+          balance_due: res.data.data?.balance_due
+        });
         toast.success(`₹${amount} payment recorded!`);
         setPaymentAmount('');
         setShowPaymentModal(false);
         loadBill();
+      } else {
+        toast.error(res.data.error || 'Update failed');
       }
     } catch (error) {
       console.error('Error updating payment:', error);
+      console.error('Error response:', error.response?.data);
       toast.error('Failed to record payment');
     } finally {
       setUpdating(false);
