@@ -182,10 +182,10 @@ function HomePage() {
 
   const loadDashboardData = async () => {
     try {
-      const [bookRes, statsRes, upcomingRes] = await Promise.all([
+      // Load essential data first
+      const [bookRes, statsRes] = await Promise.all([
         bookAPI.getCurrent(),
         billAPI.getStats(),
-        billAPI.getUpcomingDeliveries(3),
       ]);
 
       if (bookRes.data.success) {
@@ -202,8 +202,15 @@ function HomePage() {
         });
       }
 
-      if (upcomingRes.data.success) {
-        setUpcomingDeliveries(upcomingRes.data.data || []);
+      // Load upcoming deliveries separately (non-critical)
+      try {
+        const upcomingRes = await billAPI.getUpcomingDeliveries(3);
+        if (upcomingRes.data.success) {
+          setUpcomingDeliveries(upcomingRes.data.data || []);
+        }
+      } catch (upcomingError) {
+        console.error('Failed to load upcoming deliveries:', upcomingError);
+        // Don't show error toast for this - it's optional
       }
     } catch (error) {
       console.error('Failed to load dashboard:', error);
