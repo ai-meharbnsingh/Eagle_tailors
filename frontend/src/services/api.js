@@ -1,9 +1,12 @@
 import axios from 'axios';
 
-// Use environment variable for production, fallback to /api for local development
-// VITE_API_URL should be the base URL (e.g., https://eagle-tailors-api.onrender.com)
-const baseUrl = import.meta.env.VITE_API_URL || '';
-const API_BASE_URL = baseUrl ? `${baseUrl}/api` : '/api';
+// Detect environment and set API URL accordingly
+// In production (Render), use the full API URL
+// In development, use proxy through Vite dev server
+const isProduction = import.meta.env.PROD;
+const API_BASE_URL = isProduction
+  ? 'https://eagle-tailors-api.onrender.com/api'
+  : '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
