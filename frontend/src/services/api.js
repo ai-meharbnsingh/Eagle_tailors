@@ -1,12 +1,14 @@
 import axios from 'axios';
 
-// Detect environment and set API URL accordingly
-// In production (Render), use the full API URL
-// In development, use proxy through Vite dev server
-const isProduction = import.meta.env.PROD;
+// Detect environment based on hostname
+// In production (onrender.com), use the full API URL
+// In development (localhost), use proxy through Vite dev server
+const isProduction = typeof window !== 'undefined' && window.location.hostname.includes('onrender.com');
 const API_BASE_URL = isProduction
   ? 'https://eagle-tailors-api.onrender.com/api'
   : '/api';
+
+console.log('API Config:', { isProduction, hostname: window?.location?.hostname, API_BASE_URL });
 
 const api = axios.create({
   baseURL: API_BASE_URL,
