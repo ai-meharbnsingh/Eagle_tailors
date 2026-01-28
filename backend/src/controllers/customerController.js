@@ -108,6 +108,8 @@ export const customerController = {
         customers = await CustomerModel.findByPhone(q);
       } else if (type === 'name') {
         customers = await CustomerModel.searchByName(q);
+      } else if (type === 'code') {
+        customers = await CustomerModel.findByCode(q);
       }
 
       res.json({

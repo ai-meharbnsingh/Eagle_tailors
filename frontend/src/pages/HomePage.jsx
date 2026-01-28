@@ -71,10 +71,26 @@ function HomePage() {
 
     try {
       const isNumeric = /^\d+$/.test(query);
+      const isCustomerCode = /^ET-?\d*/i.test(query); // Matches ET- or ET followed by numbers
       let allResults = [];
 
-      // Try phone search first if it looks like a number
-      if (isNumeric) {
+      // Try customer code search first if it looks like a code (ET-XXXXX)
+      if (isCustomerCode) {
+        try {
+          console.log('Searching by code:', query);
+          const codeRes = await customerAPI.search(query, 'code');
+          console.log('Code search response:', codeRes.data);
+          if (codeRes.data?.success && Array.isArray(codeRes.data?.data) && codeRes.data.data.length > 0) {
+            allResults = [...codeRes.data.data];
+            console.log('Found customers by code:', allResults);
+          }
+        } catch (e) {
+          console.log('Code search failed:', e);
+        }
+      }
+
+      // Try phone search if it looks like a number
+      if (allResults.length === 0 && isNumeric) {
         try {
           console.log('Searching by phone:', query);
           const phoneRes = await customerAPI.search(query, 'phone');
@@ -88,7 +104,7 @@ function HomePage() {
         }
       }
 
-      // If no results from phone search, try name search (for both numeric and text queries)
+      // If no results, try name search
       if (allResults.length === 0) {
         try {
           console.log('Searching by name:', query);
@@ -275,7 +291,7 @@ function HomePage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
-                placeholder="Search phone, folio, or name..."
+                placeholder="Search phone, code (ET-), folio, or name..."
                 style={{
                   width: '100%',
                   border: 'none',
@@ -291,7 +307,7 @@ function HomePage() {
                 color: '#9ca3af',
                 margin: '2px 0 0 0'
               }}>
-                फ़ोन, फ़ोलियो या नाम खोजें...
+                फ़ोन, कोड (ET-), फ़ोलियो या नाम खोजें...
               </p>
             </div>
             {searchQuery && (
@@ -405,7 +421,7 @@ function HomePage() {
                         }}>
                           {result.type === 'bill'
                             ? `₹${result.total_amount || 0}`
-                            : result.phones?.[0]?.phone || 'No phone'}
+                            : `${result.customer_code || ''} ${result.customer_code ? '•' : ''} ${result.phones?.[0]?.phone || 'No phone'}`}
                         </p>
                       </div>
                       <span style={{ color: '#d1d5db', fontSize: '18px' }}>›</span>

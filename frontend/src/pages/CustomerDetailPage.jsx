@@ -209,18 +209,33 @@ function CustomerDetailPage() {
               👤
             </div>
             <div style={{ flex: 1 }}>
-              <h2 style={{
-                fontSize: '22px',
-                fontWeight: '600',
-                color: '#1f2937',
-                margin: 0
-              }}>
-                {customer.name}
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                <h2 style={{
+                  fontSize: '22px',
+                  fontWeight: '600',
+                  color: '#1f2937',
+                  margin: 0
+                }}>
+                  {customer.name}
+                </h2>
+                {customer.customer_code && (
+                  <span style={{
+                    fontSize: '12px',
+                    background: '#1e3a5f',
+                    color: 'white',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    fontWeight: '600',
+                    letterSpacing: '0.5px'
+                  }}>
+                    {customer.customer_code}
+                  </span>
+                )}
+              </div>
               <p style={{
                 fontSize: '13px',
                 color: '#9ca3af',
-                margin: '4px 0 0 0'
+                margin: 0
               }}>
                 Customer since {customer.created_at ? format(new Date(customer.created_at), 'MMM yyyy') : 'N/A'}
               </p>

@@ -62,6 +62,23 @@ export const CustomerModel = {
     return result.rows;
   },
 
+  // Search by customer code (ET-XXXXXX)
+  async findByCode(code) {
+    const result = await query(
+      `SELECT c.*,
+              json_agg(json_build_object('id', cp.id, 'phone', cp.phone, 'is_primary', cp.is_primary))
+              FILTER (WHERE cp.id IS NOT NULL) as phones
+       FROM customers c
+       LEFT JOIN customer_phones cp ON c.id = cp.customer_id
+       WHERE c.customer_code ILIKE $1 AND c.is_deleted = false
+       GROUP BY c.id
+       ORDER BY c.customer_code
+       LIMIT 20`,
+      [`%${code}%`]
+    );
+    return result.rows;
+  },
+
   // Get all customers with pagination
   async findAll(limit = 50, offset = 0) {
     const result = await query(
