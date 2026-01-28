@@ -235,44 +235,88 @@ export const BillModel = {
     return result.rows;
   },
 
-  // Update bill
-  async update(id, {
-    billDate,
-    deliveryDate,
-    actualDeliveryDate,
-    totalAmount,
-    advancePaid,
-    status,
-    remarks,
-    extractionStatus,
-    rawExtraction,
-    updatedBy
-  }) {
-    console.log('BillModel.update params:', {
-      id,
-      advancePaid,
+  // Update bill - dynamically build query based on provided fields
+  async update(id, data) {
+    const {
+      billDate,
+      deliveryDate,
+      actualDeliveryDate,
       totalAmount,
-      status
-    });
-    const result = await query(
-      `UPDATE bills
-       SET bill_date = COALESCE($1, bill_date),
-           delivery_date = COALESCE($2, delivery_date),
-           actual_delivery_date = COALESCE($3, actual_delivery_date),
-           total_amount = COALESCE($4, total_amount),
-           advance_paid = COALESCE($5, advance_paid),
-           status = COALESCE($6, status),
-           remarks = COALESCE($7, remarks),
-           extraction_status = COALESCE($8, extraction_status),
-           raw_extraction = COALESCE($9, raw_extraction),
-           updated_by = $10
-       WHERE id = $11 AND is_deleted = false
-       RETURNING *`,
-      [
-        billDate, deliveryDate, actualDeliveryDate, totalAmount, advancePaid,
-        status, remarks, extractionStatus, rawExtraction, updatedBy, id
-      ]
-    );
+      advancePaid,
+      status,
+      remarks,
+      extractionStatus,
+      rawExtraction,
+      updatedBy
+    } = data;
+
+    console.log('BillModel.update called with:', { id, advancePaid, totalAmount, status });
+
+    // Build dynamic update query
+    const updates = [];
+    const params = [];
+    let paramCount = 1;
+
+    if (billDate !== undefined) {
+      updates.push(`bill_date = $${paramCount++}`);
+      params.push(billDate);
+    }
+    if (deliveryDate !== undefined) {
+      updates.push(`delivery_date = $${paramCount++}`);
+      params.push(deliveryDate);
+    }
+    if (actualDeliveryDate !== undefined) {
+      updates.push(`actual_delivery_date = $${paramCount++}`);
+      params.push(actualDeliveryDate);
+    }
+    if (totalAmount !== undefined) {
+      updates.push(`total_amount = $${paramCount++}`);
+      params.push(totalAmount);
+    }
+    if (advancePaid !== undefined) {
+      updates.push(`advance_paid = $${paramCount++}`);
+      params.push(advancePaid);
+      console.log('Setting advance_paid to:', advancePaid);
+    }
+    if (status !== undefined) {
+      updates.push(`status = $${paramCount++}`);
+      params.push(status);
+    }
+    if (remarks !== undefined) {
+      updates.push(`remarks = $${paramCount++}`);
+      params.push(remarks);
+    }
+    if (extractionStatus !== undefined) {
+      updates.push(`extraction_status = $${paramCount++}`);
+      params.push(extractionStatus);
+    }
+    if (rawExtraction !== undefined) {
+      updates.push(`raw_extraction = $${paramCount++}`);
+      params.push(rawExtraction);
+    }
+    if (updatedBy !== undefined) {
+      updates.push(`updated_by = $${paramCount++}`);
+      params.push(updatedBy);
+    }
+
+    if (updates.length === 0) {
+      console.log('No fields to update');
+      return null;
+    }
+
+    params.push(id);
+    const queryText = `
+      UPDATE bills
+      SET ${updates.join(', ')}
+      WHERE id = $${paramCount} AND is_deleted = false
+      RETURNING *
+    `;
+
+    console.log('Update query:', queryText);
+    console.log('Update params:', params);
+
+    const result = await query(queryText, params);
+    console.log('Update result:', result.rows[0]);
     return result.rows[0];
   },
 
