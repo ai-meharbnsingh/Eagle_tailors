@@ -17,6 +17,12 @@ function BooksPage() {
     start_serial: '',
     end_serial: ''
   });
+  const [editingBook, setEditingBook] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    start_serial: '',
+    end_serial: ''
+  });
 
   useEffect(() => {
     loadBooks();
@@ -76,6 +82,44 @@ function BooksPage() {
       console.error('Error setting current book:', error);
       toast.error('Failed to set current book');
     }
+  };
+
+  const handleEditClick = (book) => {
+    setEditingBook(book.id);
+    setEditForm({
+      name: book.name,
+      start_serial: book.start_serial,
+      end_serial: book.end_serial || ''
+    });
+  };
+
+  const handleEditSave = async (bookId) => {
+    if (!editForm.name || !editForm.start_serial) {
+      toast.error('Name and start serial are required');
+      return;
+    }
+
+    try {
+      const res = await bookAPI.update(bookId, {
+        name: editForm.name,
+        startSerial: parseInt(editForm.start_serial),
+        endSerial: editForm.end_serial ? parseInt(editForm.end_serial) : null
+      });
+
+      if (res.data.success) {
+        toast.success('Book updated successfully!');
+        setEditingBook(null);
+        loadBooks();
+      }
+    } catch (error) {
+      console.error('Error updating book:', error);
+      toast.error('Failed to update book');
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingBook(null);
+    setEditForm({ name: '', start_serial: '', end_serial: '' });
   };
 
   if (loading) {
@@ -377,24 +421,143 @@ function BooksPage() {
                   )}
                 </div>
               </div>
-              {!book.is_current && (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {!book.is_current && (
+                  <button
+                    onClick={() => handleSetCurrent(book.id)}
+                    style={{
+                      padding: '8px 16px',
+                      background: '#f0fdf4',
+                      color: '#16a34a',
+                      border: '1px solid #bbf7d0',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Set as Current
+                  </button>
+                )}
                 <button
-                  onClick={() => handleSetCurrent(book.id)}
+                  onClick={() => handleEditClick(book)}
                   style={{
                     padding: '8px 16px',
-                    background: '#f0fdf4',
-                    color: '#16a34a',
-                    border: '1px solid #bbf7d0',
+                    background: '#f3f4f6',
+                    color: '#6b7280',
+                    border: '1px solid #e5e7eb',
                     borderRadius: '8px',
                     fontSize: '13px',
                     fontWeight: '500',
                     cursor: 'pointer'
                   }}
                 >
-                  Set as Current
+                  ✏️ Edit
                 </button>
-              )}
+              </div>
             </div>
+
+            {/* Edit Form */}
+            {editingBook === book.id && (
+              <div style={{
+                background: '#f9fafb',
+                borderRadius: '10px',
+                padding: '16px',
+                marginBottom: '16px'
+              }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '4px' }}>
+                    Book Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      fontSize: '14px',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '4px' }}>
+                      Start Serial
+                    </label>
+                    <input
+                      type="number"
+                      value={editForm.start_serial}
+                      onChange={(e) => setEditForm({ ...editForm, start_serial: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        fontSize: '14px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '4px' }}>
+                      End Serial
+                    </label>
+                    <input
+                      type="number"
+                      value={editForm.end_serial}
+                      onChange={(e) => setEditForm({ ...editForm, end_serial: e.target.value })}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        fontSize: '14px',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '8px',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => handleEditSave(book.id)}
+                    style={{
+                      padding: '10px 20px',
+                      background: '#1e3a5f',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ✓ Save
+                  </button>
+                  <button
+                    onClick={handleEditCancel}
+                    style={{
+                      padding: '10px 20px',
+                      background: '#f3f4f6',
+                      color: '#6b7280',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Stats Grid */}
             <div style={{

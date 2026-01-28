@@ -32,7 +32,19 @@
       "Bash(dir:*)",
       "Bash(git init:*)",
       "Bash(git remote add:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(PGPASSWORD=ojMoib6axX7M0HL6ywAtWNreKm2oPZ95 psql:*)",
+      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/health''\")",
+      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/books''\")",
+      "Bash(powershell -Command \"try { Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/books'' } catch { $_Exception.Response }\")",
+      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/bills/stats''\")",
+      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/books'' -Method GET\")",
+      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/books'' -Method POST -ContentType ''application/json'' -Body ''{\"\"name\"\":\"\"Test Book\"\",\"\"start_serial\"\":1}''\")",
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/assets/index*.js'' -UseBasicParsing\\).Content.Substring\\(0, 500\\)\")",
+      "Bash(powershell -Command \"Invoke-RestMethod -Uri ''https://eagle-tailors-api.onrender.com/api/customers/search?q=test&type=name''\")"
     ],
     "deny": [],
     "ask": []

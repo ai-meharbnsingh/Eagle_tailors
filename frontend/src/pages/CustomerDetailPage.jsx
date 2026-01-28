@@ -12,6 +12,13 @@ function CustomerDetailPage() {
   const [customer, setCustomer] = useState(null);
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    address: '',
+    notes: ''
+  });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -37,6 +44,47 @@ function CustomerDetailPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditClick = () => {
+    setEditForm({
+      name: customer.name || '',
+      address: customer.address || '',
+      notes: customer.notes || ''
+    });
+    setIsEditing(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!editForm.name.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await customerAPI.update(id, {
+        name: editForm.name,
+        address: editForm.address,
+        notes: editForm.notes
+      });
+
+      if (res.data.success) {
+        toast.success('Customer updated successfully!');
+        setIsEditing(false);
+        loadData();
+      }
+    } catch (error) {
+      console.error('Error updating customer:', error);
+      toast.error('Failed to update customer');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleEditCancel = () => {
+    setIsEditing(false);
+    setEditForm({ name: '', address: '', notes: '' });
   };
 
   const getStatusStyle = (status) => {
@@ -160,7 +208,7 @@ function CustomerDetailPage() {
             }}>
               👤
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <h2 style={{
                 fontSize: '22px',
                 fontWeight: '600',
@@ -177,7 +225,133 @@ function CustomerDetailPage() {
                 Customer since {customer.created_at ? format(new Date(customer.created_at), 'MMM yyyy') : 'N/A'}
               </p>
             </div>
+            {!isEditing && (
+              <button
+                onClick={handleEditClick}
+                style={{
+                  padding: '10px 20px',
+                  background: '#f3f4f6',
+                  color: '#6b7280',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                ✏️ Edit
+              </button>
+            )}
           </div>
+
+          {/* Edit Form */}
+          {isEditing && (
+            <div style={{
+              background: '#f9fafb',
+              borderRadius: '12px',
+              padding: '20px',
+              marginBottom: '20px'
+            }}>
+              <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#374151', margin: '0 0 16px 0' }}>
+                Edit Customer / ग्राहक संपादित करें
+              </h4>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                  Name / नाम *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    fontSize: '15px',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '10px',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '14px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                  Address / पता
+                </label>
+                <input
+                  type="text"
+                  value={editForm.address}
+                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    fontSize: '15px',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '10px',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '6px' }}>
+                  Notes / नोट्स
+                </label>
+                <textarea
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    fontSize: '15px',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '10px',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    resize: 'vertical'
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={handleEditSave}
+                  disabled={saving}
+                  style={{
+                    padding: '12px 24px',
+                    background: saving ? '#9ca3af' : '#1e3a5f',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: saving ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {saving ? 'Saving...' : '✓ Save Changes'}
+                </button>
+                <button
+                  onClick={handleEditCancel}
+                  disabled={saving}
+                  style={{
+                    padding: '12px 24px',
+                    background: '#f3f4f6',
+                    color: '#6b7280',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Contact Info */}
           <div style={{ marginBottom: '20px' }}>
