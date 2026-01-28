@@ -57,7 +57,8 @@
       "Bash(powershell -Command \"$content = \\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/assets/index-UtrQjl4p.js'' -UseBasicParsing\\).Content; if \\($content -match ''eagle-tailors-api''\\) { ''Found API URL'' } else { ''API URL NOT FOUND in bundle'' }\")",
       "Bash(powershell -Command \"$js = \\(Invoke-WebRequest -Uri ''https://eagle-tailors-frontend.onrender.com/assets/index-C1XhPMMF.js'' -UseBasicParsing\\).Content; $js.Contains\\(''eagle-tailors-api''\\)\")",
       "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-api.onrender.com/api/books/current'' -UseBasicParsing -TimeoutSec 120\\).Content\")",
-      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-api.onrender.com/api/bills/stats'' -UseBasicParsing -TimeoutSec 60\\).Content\")"
+      "Bash(powershell -Command \"\\(Invoke-WebRequest -Uri ''https://eagle-tailors-api.onrender.com/api/bills/stats'' -UseBasicParsing -TimeoutSec 60\\).Content\")",
+      "Bash(powershell -Command:*)"
     ],
     "deny": [],
     "ask": []

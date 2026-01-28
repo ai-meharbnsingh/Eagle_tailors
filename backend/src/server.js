@@ -43,7 +43,8 @@ app.get('/health', (req, res) => {
   res.json({
     success: true,
     message: 'Eagle Tailors API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    version: '1.0.1'
   });
 });
 
